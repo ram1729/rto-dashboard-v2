@@ -3,8 +3,6 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
-  schedule:
-    - cron: '0 */12 * * *'
   workflow_dispatch:
 
 permissions:
@@ -14,57 +12,21 @@ permissions:
 
 jobs:
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js ⚙️
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: Install Node Dependencies 📦
         run: npm install
 
-      - name: Setup Python for Sentiment 🐍
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install Python Dependencies 🐍
-        run: |
-          if [ -f requirements.txt ]; then
-            pip install -r requirements.txt
-          fi
-
-      - name: Run Scrapers 🔍
-        run: |
-          node scraper.cjs
-          if [ -f scripts/scrape_sentiment.py ]; then
-            python scripts/scrape_sentiment.py
-          fi
-        continue-on-error: true
-
-      - name: Commit Updated Data 💾
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          # Safe add: only add if directories exist
-          [ -d public/data ] && git add public/data/
-          [ -d data ] && git add data/
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "chore: auto-update RTO data and sentiment [$(date +'%Y-%m-%d')]"
-            git push origin main
-          fi
+      - name: Run Scraper 🔍
+        run: node scraper.cjs
         continue-on-error: true
 
       - name: Setup Pages 🛠️
@@ -78,15 +40,6 @@ jobs:
         with:
           path: './dist'
 
-      - name: Deploy to GitHub Pages (Modern) 🚀
+      - name: Deploy to GitHub Pages 🚀
         id: deployment
         uses: actions/deploy-pages@v4
-        continue-on-error: true
-
-      - name: Deploy to GitHub Pages (Legacy Fallback) 🪂
-        if: always()
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: dist
-          branch: gh-pages
-          clean: true
