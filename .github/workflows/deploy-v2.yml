@@ -7,8 +7,6 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
   deploy:
@@ -29,17 +27,12 @@ jobs:
         run: node scraper.cjs
         continue-on-error: true
 
-      - name: Setup Pages 🛠️
-        uses: actions/configure-pages@v5
-
       - name: Build 🔧
         run: npm run build
 
-      - name: Upload artifact 📤
-        uses: actions/upload-pages-artifact@v3
+      - name: Deploy to GitHub Pages (Legacy Push) 🪂
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          path: './dist'
-
-      - name: Deploy to GitHub Pages 🚀
-        id: deployment
-        uses: actions/deploy-pages@v4
+          folder: dist
+          branch: gh-pages
+          clean: true
