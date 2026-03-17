@@ -31,7 +31,7 @@ jobs:
           cache: 'npm'
 
       - name: Install Node Dependencies 📦
-        run: npm ci
+        run: npm install
 
       - name: Setup Python for Sentiment 🐍
         uses: actions/setup-python@v5
